@@ -1,2 +1,3 @@
 # node-serial
-node
+
+- promise 的原理
