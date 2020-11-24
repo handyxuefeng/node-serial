@@ -106,6 +106,8 @@ var MyPromise = /** @class */ (function () {
      */
     MyPromise.prototype.then = function (onFulfilled, onRejected) {
         var _this = this;
+        onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : function (val) { return val; };
+        onRejected = typeof onRejected === 'function' ? onRejected : function (err) { throw err; };
         var newPromise = new MyPromise(function (resolve, reject) {
             //then方法可以在promise实例化多次调用，所以要订阅then传入的成功和失败函数
             if (_this.status === "PENDING" /* peding */) {
@@ -218,5 +220,11 @@ promise2.then(function (data) {
     console.log('成功回调2222=', data);
 }, function (error) {
     console.log('失败回调2222=', error);
+});
+var promise3 = new MyPromise(function (resolve, reject) {
+    resolve(1);
+});
+promise3.then().then().then().then(function (data) {
+    console.log('then的穿透实现 = ', data);
 });
 //# sourceMappingURL=bundle.js.map

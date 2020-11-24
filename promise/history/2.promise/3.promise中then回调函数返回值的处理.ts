@@ -121,9 +121,6 @@ class MyPromise {
      */
     then(onFulfilled?: Function, onRejected?: Function) {
 
-        onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : val => val;
-        onRejected = typeof onRejected === 'function' ? onRejected : err => { throw err };
-
         let newPromise = new MyPromise((resolve: Function, reject: Function) => {
 
             //then方法可以在promise实例化多次调用，所以要订阅then传入的成功和失败函数
@@ -131,7 +128,6 @@ class MyPromise {
                 //订阅then的成功回调
                 if (typeof onFulfilled === 'function') {
                     this.onFulFilledList.push(() => {
-
                         setTimeout(() => {
                             try {
                                 let x = onFulfilled(this.value);

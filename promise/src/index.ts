@@ -26,6 +26,17 @@ promise.then((successData) => {
 });
 */
 
+/*
+let promise = new Promise((resolve, reject) => {
+    resolve('ok')
+});
+promise.then().then().then().then(data => {
+    console.log('data =', data);
+})
+*/
+
+
+
 import MyPromise from './promise/index';
 let promise2 = new MyPromise((reslove, reject) => {
     setTimeout(() => {
@@ -65,7 +76,15 @@ promise2.then((data) => {
     console.log('成功回调2222=', data);
 }, (error) => {
     console.log('失败回调2222=', error);
+});
+
+let promise3 = new MyPromise((resolve, reject) => {
+    resolve(1);
+});
+promise3.then().then().then().then(data => {
+    console.log('then的穿透实现 = ', data);
 })
+
 
 
 
