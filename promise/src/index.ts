@@ -27,11 +27,11 @@ promise.then((successData) => {
 */
 
 import MyPromise from './promise/index';
-let promise = new MyPromise((reslove, reject) => {
+let promise2 = new MyPromise((reslove, reject) => {
     setTimeout(() => {
-        reslove('99999999999');
-        //reject('fail');
-    }, 1000);
+        //reslove('99999999999');
+        reject('fail');
+    }, 2000);
     //reslove('ok');
     //reject('fail');
     //throw new Error('报错了')
@@ -39,10 +39,18 @@ let promise = new MyPromise((reslove, reject) => {
     console.log('成功回调1111=', data);
     //throw new Error('第一个错误回调中throw Error')
     //return 1000;
+    // return new MyPromise((reslove, reject) => {
+    //     reject('goto next reject')
+    //     //reslove('111')
+    // });
     return new MyPromise((reslove, reject) => {
-        //reject('goto next then errorcallback')
-        reslove('111')
-    })
+        reslove(new MyPromise((reslove, reject) => {
+            reslove("88888888888");
+        }));
+    });
+
+
+
 }, (error) => {
     // throw new Error('第一个错误回调中throw Error')
     console.log('失败回调1111=', error);
@@ -53,7 +61,7 @@ let promise = new MyPromise((reslove, reject) => {
     })
 });
 
-promise.then((data) => {
+promise2.then((data) => {
     console.log('成功回调2222=', data);
 }, (error) => {
     console.log('失败回调2222=', error);

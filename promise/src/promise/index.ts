@@ -25,6 +25,61 @@ const enum STATUS {
     fulfilled = 'FULFILLED',
     rejected = 'REJECTED'
 }
+
+/**
+ * 
+//返回的不是Promise的实列，x是一个普通值
+if (!x.then) {
+    resolve(x);
+}
+else { //返回的是一个Promise的话，则要看Promise里执行的是reslove，还是reject逻辑
+    let status = x.status;
+    console.log('status = ', status);
+    if (status === STATUS.fulfilled) {
+        console.log('x.value =', x.value);
+        //返回的x.value 还是一个promise 
+        if (x.value.then && typeof x.value.then === 'function') {
+            resolve(x.value.value)
+        }
+        else {
+            resolve(x.value);
+        }
+
+    }
+    else {
+        reject(x.reason);
+    }
+}
+ */
+
+const resolvePromise = (promise, x, resolve, reject) => {
+    if (promise == x) {
+        return reject(new Error('错误的引用,promise 和 x 是同一个对象了'));
+    }
+    if ((x != null && typeof x == 'object') || typeof x === 'function') {
+        try {
+            let then = x.then;  //如果x对象存在then，且then 是一个方法，则说明x是一个promise
+            if (then && typeof then == 'function') {
+                //直接执行x.then方法.写法就是promise.then.call(x,()=>{},()=>{})
+                then.call(x, (y) => {
+                    //如果y还是一个还是一个promise，则递归判断
+                    resolvePromise(promise, y, resolve, reject)
+                }, (r) => {
+                    reject(r)
+                });
+            }
+        } catch (error) {
+            reject(error)
+        }
+    }
+    else {  //如果返回的是非promise的普通值
+        resolve(x);
+    }
+
+}
+
+
+
 class MyPromise {
     public status: STATUS;
     public value;  //成功的原因
@@ -64,7 +119,7 @@ class MyPromise {
      * @param onRejected 
      * then方法返回的是一个全新的Promise，不是返回this
      */
-    then(onFulfilled: Function, onRejected: Function) {
+    then(onFulfilled?: Function, onRejected?: Function) {
 
         let newPromise = new MyPromise((resolve: Function, reject: Function) => {
 
@@ -73,93 +128,58 @@ class MyPromise {
                 //订阅then的成功回调
                 if (typeof onFulfilled === 'function') {
                     this.onFulFilledList.push(() => {
-
-                        try {
-                            let x = onFulfilled(this.value);
-                            //返回的不是Promise的实列,promise的实列都是有then方法的,x是一个普通值
-                            if (!x.then) {
-                                resolve(x);
+                        setTimeout(() => {
+                            try {
+                                let x = onFulfilled(this.value);
+                                //对返回的x做判断，判断x 是普通值还是promise
+                                resolvePromise(newPromise, x, resolve, reject);
+                            } catch (error) {
+                                reject(error); //出错则执行到下一个then方法的失败回调
                             }
-                            else {
-                                let status = x.status;
-                                if (status === STATUS.fulfilled) {
-                                    resolve(x.value);
-                                }
-                                else {
-                                    reject(x.reason);
-                                }
-                            }
-                        } catch (error) {
-                            reject(error); //出错则执行到下一个then方法的失败回调
-                        }
-
+                        }, 0);
 
                     });
                 }
                 //订阅then的失败回调
                 if (typeof onRejected === 'function') {
                     this.onRejectedList.push(() => {
-                        try {
-                            let x = onRejected(this.reason);
-                            //返回的不是Promise的实列，x是一个普通值
-                            if (!x.then) {
-                                resolve(x);
-                            } else {
-                                let status = x.status;
-                                if (status === STATUS.fulfilled) {
-                                    resolve(x.value);
-                                }
-                                else {
-                                    reject(x.reason);
-                                }
+                        setTimeout(() => {
+                            try {
+                                let x = onRejected(this.reason);
+                                //对返回的x做判断，判断x 是普通值还是promise
+                                resolvePromise(newPromise, x, resolve, reject);
+                            } catch (error) {
+                                reject(error)
                             }
+                        }, 0);
 
-                        } catch (error) {
-                            reject(error)
-                        }
                     });
                 }
             }
 
             //如果是成功，则在then方法中执行成功的回调
             if (this.status === STATUS.fulfilled) {
-                try {
-                    let x = onFulfilled(this.value);
-                    //返回的不是Promise的实列，x是一个普通值
-                    if (!x.then) {
-                        resolve(x);
+                //添加settimeout的目的是为了确保newPromise一定不为undefined
+                setTimeout(() => {
+                    try {
+                        let x = onFulfilled(this.value);
+                        //对返回的x做判断，判断x 是普通值还是promise
+                        resolvePromise(newPromise, x, resolve, reject);
+                    } catch (error) {
+                        reject(error);
                     }
-                    else { //返回的是一个Promise的话，则要看Promise里执行的是reslove，还是reject逻辑
-                        let status = x.status;
-                        if (status === STATUS.fulfilled) {
-                            resolve(x.value);
-                        }
-                        else {
-                            reject(x.reason);
-                        }
-                    }
-                } catch (error) {
-                    reject(error);
-                }
+                }, 0);
             }
             if (this.status === STATUS.rejected) {
-                try {
-                    let x = onRejected(this.reason);
-                    //返回的不是Promise的实列，x是一个普通值
-                    if (!x.then) {
-                        resolve(x);
-                    } else {
-                        let status = x.status;
-                        if (status === STATUS.fulfilled) {
-                            resolve(x.value);
-                        }
-                        else {
-                            reject(x.reason);
-                        }
+                setTimeout(() => {
+                    try {
+                        let x = onRejected(this.reason);
+                        //对返回的x做判断，判断x 是普通值还是promise
+                        resolvePromise(newPromise, x, resolve, reject);
+                    } catch (error) {
+                        reject(error)
                     }
-                } catch (error) {
-                    reject(error)
-                }
+                }, 0);
             }
         });
 

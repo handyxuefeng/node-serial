@@ -19,6 +19,56 @@
  *   8.1 上一个then的成功回调中，抛出异常throw new Error('异常会走到下一个then的失败回调')
  *   8-2.上一个then方法的成功回调和失败回调方法中，返回是promise时，执行的是promise的reject逻辑
  */
+/**
+ *
+//返回的不是Promise的实列，x是一个普通值
+if (!x.then) {
+    resolve(x);
+}
+else { //返回的是一个Promise的话，则要看Promise里执行的是reslove，还是reject逻辑
+    let status = x.status;
+    console.log('status = ', status);
+    if (status === STATUS.fulfilled) {
+        console.log('x.value =', x.value);
+        //返回的x.value 还是一个promise
+        if (x.value.then && typeof x.value.then === 'function') {
+            resolve(x.value.value)
+        }
+        else {
+            resolve(x.value);
+        }
+
+    }
+    else {
+        reject(x.reason);
+    }
+}
+ */
+var resolvePromise = function (promise, x, resolve, reject) {
+    if (promise == x) {
+        return reject(new Error('错误的引用,promise 和 x 是同一个对象了'));
+    }
+    if ((x != null && typeof x == 'object') || typeof x === 'function') {
+        try {
+            var then = x.then; //如果x对象存在then，且then 是一个方法，则说明x是一个promise
+            if (then && typeof then == 'function') {
+                //直接执行x.then方法.写法就是promise.then.call(x,()=>{},()=>{})
+                then.call(x, function (y) {
+                    //如果y还是一个还是一个promise，则递归判断
+                    resolvePromise(promise, y, resolve, reject);
+                }, function (r) {
+                    reject(r);
+                });
+            }
+        }
+        catch (error) {
+            reject(error);
+        }
+    }
+    else { //如果返回的是非promise的普通值
+        resolve(x);
+    }
+};
 var MyPromise = /** @class */ (function () {
     function MyPromise(executorFn) {
         var _this = this;
@@ -62,94 +112,59 @@ var MyPromise = /** @class */ (function () {
                 //订阅then的成功回调
                 if (typeof onFulfilled === 'function') {
                     _this.onFulFilledList.push(function () {
-                        try {
-                            var x = onFulfilled(_this.value);
-                            //返回的不是Promise的实列,promise的实列都是有then方法的,x是一个普通值
-                            if (!x.then) {
-                                resolve(x);
+                        setTimeout(function () {
+                            try {
+                                var x = onFulfilled(_this.value);
+                                //对返回的x做判断，判断x 是普通值还是promise
+                                resolvePromise(newPromise, x, resolve, reject);
                             }
-                            else {
-                                var status_1 = x.status;
-                                if (status_1 === "FULFILLED" /* fulfilled */) {
-                                    resolve(x.value);
-                                }
-                                else {
-                                    reject(x.reason);
-                                }
+                            catch (error) {
+                                reject(error); //出错则执行到下一个then方法的失败回调
                             }
-                        }
-                        catch (error) {
-                            reject(error); //出错则执行到下一个then方法的失败回调
-                        }
+                        }, 0);
                     });
                 }
                 //订阅then的失败回调
                 if (typeof onRejected === 'function') {
                     _this.onRejectedList.push(function () {
-                        try {
-                            var x = onRejected(_this.reason);
-                            //返回的不是Promise的实列，x是一个普通值
-                            if (!x.then) {
-                                resolve(x);
+                        setTimeout(function () {
+                            try {
+                                var x = onRejected(_this.reason);
+                                //对返回的x做判断，判断x 是普通值还是promise
+                                resolvePromise(newPromise, x, resolve, reject);
                             }
-                            else {
-                                var status_2 = x.status;
-                                if (status_2 === "FULFILLED" /* fulfilled */) {
-                                    resolve(x.value);
-                                }
-                                else {
-                                    reject(x.reason);
-                                }
+                            catch (error) {
+                                reject(error);
                             }
-                        }
-                        catch (error) {
-                            reject(error);
-                        }
+                        }, 0);
                     });
                 }
             }
             //如果是成功，则在then方法中执行成功的回调
             if (_this.status === "FULFILLED" /* fulfilled */) {
-                try {
-                    var x = onFulfilled(_this.value);
-                    //返回的不是Promise的实列，x是一个普通值
-                    if (!x.then) {
-                        resolve(x);
+                //添加settimeout的目的是为了确保newPromise一定不为undefined
+                setTimeout(function () {
+                    try {
+                        var x = onFulfilled(_this.value);
+                        //对返回的x做判断，判断x 是普通值还是promise
+                        resolvePromise(newPromise, x, resolve, reject);
                     }
-                    else { //返回的是一个Promise的话，则要看Promise里执行的是reslove，还是reject逻辑
-                        var status_3 = x.status;
-                        if (status_3 === "FULFILLED" /* fulfilled */) {
-                            resolve(x.value);
-                        }
-                        else {
-                            reject(x.reason);
-                        }
+                    catch (error) {
+                        reject(error);
                     }
-                }
-                catch (error) {
-                    reject(error);
-                }
+                }, 0);
             }
             if (_this.status === "REJECTED" /* rejected */) {
-                try {
-                    var x = onRejected(_this.reason);
-                    //返回的不是Promise的实列，x是一个普通值
-                    if (!x.then) {
-                        resolve(x);
+                setTimeout(function () {
+                    try {
+                        var x = onRejected(_this.reason);
+                        //对返回的x做判断，判断x 是普通值还是promise
+                        resolvePromise(newPromise, x, resolve, reject);
                     }
-                    else {
-                        var status_4 = x.status;
-                        if (status_4 === "FULFILLED" /* fulfilled */) {
-                            resolve(x.value);
-                        }
-                        else {
-                            reject(x.reason);
-                        }
+                    catch (error) {
+                        reject(error);
                     }
-                }
-                catch (error) {
-                    reject(error);
-                }
+                }, 0);
             }
         });
         return newPromise;
@@ -169,11 +184,11 @@ var MyPromise = /** @class */ (function () {
  * 3.new Promise 后都会立即执行
  * 4.then方法里面有两个回调函数作为参数，一个成功的回调，一个失败的回调
  */
-var promise = new MyPromise(function (reslove, reject) {
+var promise2 = new MyPromise(function (reslove, reject) {
     setTimeout(function () {
-        reslove('99999999999');
-        //reject('fail');
-    }, 1000);
+        //reslove('99999999999');
+        reject('fail');
+    }, 2000);
     //reslove('ok');
     //reject('fail');
     //throw new Error('报错了')
@@ -181,9 +196,14 @@ var promise = new MyPromise(function (reslove, reject) {
     console.log('成功回调1111=', data);
     //throw new Error('第一个错误回调中throw Error')
     //return 1000;
+    // return new MyPromise((reslove, reject) => {
+    //     reject('goto next reject')
+    //     //reslove('111')
+    // });
     return new MyPromise(function (reslove, reject) {
-        //reject('goto next then errorcallback')
-        reslove('111');
+        reslove(new MyPromise(function (reslove, reject) {
+            reslove("88888888888");
+        }));
     });
 }, function (error) {
     // throw new Error('第一个错误回调中throw Error')
@@ -194,7 +214,7 @@ var promise = new MyPromise(function (reslove, reject) {
         //reslove('111')
     });
 });
-promise.then(function (data) {
+promise2.then(function (data) {
     console.log('成功回调2222=', data);
 }, function (error) {
     console.log('失败回调2222=', error);
