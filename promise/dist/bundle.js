@@ -92,6 +92,15 @@ var MyPromise = /** @class */ (function () {
                             if (!x.then) {
                                 resolve(x);
                             }
+                            else {
+                                var status_2 = x.status;
+                                if (status_2 === "FULFILLED" /* fulfilled */) {
+                                    resolve(x.value);
+                                }
+                                else {
+                                    reject(x.reason);
+                                }
+                            }
                         }
                         catch (error) {
                             reject(error);
@@ -108,8 +117,8 @@ var MyPromise = /** @class */ (function () {
                         resolve(x);
                     }
                     else { //返回的是一个Promise的话，则要看Promise里执行的是reslove，还是reject逻辑
-                        var status_2 = x.status;
-                        if (status_2 === "FULFILLED" /* fulfilled */) {
+                        var status_3 = x.status;
+                        if (status_3 === "FULFILLED" /* fulfilled */) {
                             resolve(x.value);
                         }
                         else {
@@ -127,6 +136,15 @@ var MyPromise = /** @class */ (function () {
                     //返回的不是Promise的实列，x是一个普通值
                     if (!x.then) {
                         resolve(x);
+                    }
+                    else {
+                        var status_4 = x.status;
+                        if (status_4 === "FULFILLED" /* fulfilled */) {
+                            resolve(x.value);
+                        }
+                        else {
+                            reject(x.reason);
+                        }
                     }
                 }
                 catch (error) {
@@ -152,11 +170,11 @@ var MyPromise = /** @class */ (function () {
  * 4.then方法里面有两个回调函数作为参数，一个成功的回调，一个失败的回调
  */
 var promise = new MyPromise(function (reslove, reject) {
-    // setTimeout(() => {
-    //     //reslove('success');
-    //     reject('fail');
-    // }, 1000);
-    reslove('ok');
+    setTimeout(function () {
+        reslove('99999999999');
+        //reject('fail');
+    }, 1000);
+    //reslove('ok');
     //reject('fail');
     //throw new Error('报错了')
 }).then(function (data) {
@@ -169,12 +187,12 @@ var promise = new MyPromise(function (reslove, reject) {
     });
 }, function (error) {
     // throw new Error('第一个错误回调中throw Error')
-    //console.log('失败回调1111=', error);
-    return '99999';
-    // return new Promise((reslove, reject) => {
-    //     reject('goto next then errorcallback')
-    //     //reslove('111')
-    // })
+    console.log('失败回调1111=', error);
+    //return '99999'
+    return new MyPromise(function (reslove, reject) {
+        reject('goto next then errorcallback');
+        //reslove('111')
+    });
 });
 promise.then(function (data) {
     console.log('成功回调2222=', data);

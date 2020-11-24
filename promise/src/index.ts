@@ -28,11 +28,11 @@ promise.then((successData) => {
 
 import MyPromise from './promise/index';
 let promise = new MyPromise((reslove, reject) => {
-    // setTimeout(() => {
-    //     //reslove('success');
-    //     reject('fail');
-    // }, 1000);
-    reslove('ok');
+    setTimeout(() => {
+        reslove('99999999999');
+        //reject('fail');
+    }, 1000);
+    //reslove('ok');
     //reject('fail');
     //throw new Error('报错了')
 }).then((data) => {
@@ -45,12 +45,12 @@ let promise = new MyPromise((reslove, reject) => {
     })
 }, (error) => {
     // throw new Error('第一个错误回调中throw Error')
-    //console.log('失败回调1111=', error);
-    return '99999'
-    // return new Promise((reslove, reject) => {
-    //     reject('goto next then errorcallback')
-    //     //reslove('111')
-    // })
+    console.log('失败回调1111=', error);
+    //return '99999'
+    return new MyPromise((reslove, reject) => {
+        reject('goto next then errorcallback')
+        //reslove('111')
+    })
 });
 
 promise.then((data) => {
