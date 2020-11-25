@@ -26,32 +26,6 @@ const enum STATUS {
     rejected = 'REJECTED'
 }
 
-/**
- * 
-//返回的不是Promise的实列，x是一个普通值
-if (!x.then) {
-    resolve(x);
-}
-else { //返回的是一个Promise的话，则要看Promise里执行的是reslove，还是reject逻辑
-    let status = x.status;
-    console.log('status = ', status);
-    if (status === STATUS.fulfilled) {
-        console.log('x.value =', x.value);
-        //返回的x.value 还是一个promise 
-        if (x.value.then && typeof x.value.then === 'function') {
-            resolve(x.value.value)
-        }
-        else {
-            resolve(x.value);
-        }
-
-    }
-    else {
-        reject(x.reason);
-    }
-}
- */
-
 const resolvePromise = (promise, x, resolve, reject) => {
     if (promise == x) {
         return reject(new Error('错误的引用,promise 和 x 是同一个对象了'));
@@ -67,6 +41,8 @@ const resolvePromise = (promise, x, resolve, reject) => {
                 }, (r) => {
                     reject(r)
                 });
+            } else {
+                resolve(x);
             }
         } catch (error) {
             reject(error)

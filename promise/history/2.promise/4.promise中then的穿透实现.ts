@@ -26,9 +26,10 @@ const enum STATUS {
     rejected = 'REJECTED'
 }
 
+
 const resolvePromise = (promise, x, resolve, reject) => {
     if (promise == x) {
-        return reject(new TypeError('错误的引用,promise 和 x 是同一个对象了'));
+        return reject(new Error('错误的引用,promise 和 x 是同一个对象了'));
     }
     if ((x != null && typeof x == 'object') || typeof x === 'function') {
         try {
@@ -57,7 +58,6 @@ const resolvePromise = (promise, x, resolve, reject) => {
 
 
 class MyPromise {
-    static deferred;
     public status: STATUS;
     public value;  //成功的原因
     public reason; //失败的原因
@@ -101,7 +101,7 @@ class MyPromise {
         onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : val => val;
         onRejected = typeof onRejected === 'function' ? onRejected : () => { throw new Error('') };
 
-        let promise2 = new MyPromise((resolve: Function, reject: Function) => {
+        let newPromise = new MyPromise((resolve: Function, reject: Function) => {
 
             //then方法可以在promise实例化多次调用，所以要订阅then传入的成功和失败函数
             if (this.status === STATUS.peding) {
@@ -113,7 +113,7 @@ class MyPromise {
                             try {
                                 let x = onFulfilled(this.value);
                                 //对返回的x做判断，判断x 是普通值还是promise
-                                resolvePromise(promise2, x, resolve, reject);
+                                resolvePromise(newPromise, x, resolve, reject);
                             } catch (error) {
                                 reject(error); //出错则执行到下一个then方法的失败回调
                             }
@@ -128,9 +128,9 @@ class MyPromise {
                             try {
                                 let x = onRejected(this.reason);
                                 //对返回的x做判断，判断x 是普通值还是promise
-                                resolvePromise(promise2, x, resolve, reject);
+                                resolvePromise(newPromise, x, resolve, reject);
                             } catch (error) {
-                                reject(error);
+                                reject(error)
                             }
                         }, 0);
 
@@ -145,7 +145,7 @@ class MyPromise {
                     try {
                         let x = onFulfilled(this.value);
                         //对返回的x做判断，判断x 是普通值还是promise
-                        resolvePromise(promise2, x, resolve, reject);
+                        resolvePromise(newPromise, x, resolve, reject);
                     } catch (error) {
                         reject(error);
                     }
@@ -156,7 +156,7 @@ class MyPromise {
                     try {
                         let x = onRejected(this.reason);
                         //对返回的x做判断，判断x 是普通值还是promise
-                        resolvePromise(promise2, x, resolve, reject);
+                        resolvePromise(newPromise, x, resolve, reject);
                     } catch (error) {
                         reject(error)
                     }
@@ -164,64 +164,10 @@ class MyPromise {
             }
         });
 
-        return promise2;
-    }
-    /**
-     * Promise的catch方法就是then方法没有传递成功的回调函数
-     * @param errorFn 
-     */
-    catch(errorFn: Function) {
-        console.log('catche');
-        return this.then(null, errorFn);
-    }
-    /**
-     * all方法返回的也是一个promise
-     * @param valuesList 
-     */
-    static all(valuesList: any[]) {
+        return newPromise;
 
-        const length = valuesList.length;// 传过来的数组的长度
-        let times = 0;
-        const results = [];
-
-        return new MyPromise((resolve, reject) => {
-            //收集值
-            function collectValue(i, val) {
-                times++;
-                results[i] = val;
-                if (times == length) {
-                    resolve(results);
-                }
-            }
-            valuesList.forEach((item, idx) => {
-                //判断传递过来的每一项是否是promise
-                if (item.then && typeof item.then === 'function') {
-                    console.log('item=', item);
-                    item.then((data) => {
-                        collectValue(idx, data)
-                    }, err => {
-                        reject(err);
-                    })
-                } else { //如果是一个普通值
-                    collectValue(idx, item);
-                }
-            });
-
-        });
     }
 }
-
-MyPromise.deferred = function () {
-    let dfd = {} as any;
-    dfd.promise = new MyPromise((resolve, reject) => {
-        dfd.resolve = resolve;
-        dfd.reject = reject;
-    });
-    return dfd;
-}
-
-
-
 export default MyPromise;
 
 //exports = module.exports = MyPromise

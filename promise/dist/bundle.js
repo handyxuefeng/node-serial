@@ -1,5 +1,28 @@
 'use strict';
 
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __spreadArrays() {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+}
+
 /**
  Promise 解决的问题:
  * 1. promise  解决多个异步并行执行，最终得到所有的结果
@@ -19,34 +42,9 @@
  *   8.1 上一个then的成功回调中，抛出异常throw new Error('异常会走到下一个then的失败回调')
  *   8-2.上一个then方法的成功回调和失败回调方法中，返回是promise时，执行的是promise的reject逻辑
  */
-/**
- *
-//返回的不是Promise的实列，x是一个普通值
-if (!x.then) {
-    resolve(x);
-}
-else { //返回的是一个Promise的话，则要看Promise里执行的是reslove，还是reject逻辑
-    let status = x.status;
-    console.log('status = ', status);
-    if (status === STATUS.fulfilled) {
-        console.log('x.value =', x.value);
-        //返回的x.value 还是一个promise
-        if (x.value.then && typeof x.value.then === 'function') {
-            resolve(x.value.value)
-        }
-        else {
-            resolve(x.value);
-        }
-
-    }
-    else {
-        reject(x.reason);
-    }
-}
- */
 var resolvePromise = function (promise, x, resolve, reject) {
     if (promise == x) {
-        return reject(new Error('错误的引用,promise 和 x 是同一个对象了'));
+        return reject(new TypeError('错误的引用,promise 和 x 是同一个对象了'));
     }
     if ((x != null && typeof x == 'object') || typeof x === 'function') {
         try {
@@ -59,6 +57,9 @@ var resolvePromise = function (promise, x, resolve, reject) {
                 }, function (r) {
                     reject(r);
                 });
+            }
+            else {
+                resolve(x);
             }
         }
         catch (error) {
@@ -107,8 +108,8 @@ var MyPromise = /** @class */ (function () {
     MyPromise.prototype.then = function (onFulfilled, onRejected) {
         var _this = this;
         onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : function (val) { return val; };
-        onRejected = typeof onRejected === 'function' ? onRejected : function (err) { throw err; };
-        var newPromise = new MyPromise(function (resolve, reject) {
+        onRejected = typeof onRejected === 'function' ? onRejected : function () { throw new Error(''); };
+        var promise2 = new MyPromise(function (resolve, reject) {
             //then方法可以在promise实例化多次调用，所以要订阅then传入的成功和失败函数
             if (_this.status === "PENDING" /* peding */) {
                 //订阅then的成功回调
@@ -118,7 +119,7 @@ var MyPromise = /** @class */ (function () {
                             try {
                                 var x = onFulfilled(_this.value);
                                 //对返回的x做判断，判断x 是普通值还是promise
-                                resolvePromise(newPromise, x, resolve, reject);
+                                resolvePromise(promise2, x, resolve, reject);
                             }
                             catch (error) {
                                 reject(error); //出错则执行到下一个then方法的失败回调
@@ -133,7 +134,7 @@ var MyPromise = /** @class */ (function () {
                             try {
                                 var x = onRejected(_this.reason);
                                 //对返回的x做判断，判断x 是普通值还是promise
-                                resolvePromise(newPromise, x, resolve, reject);
+                                resolvePromise(promise2, x, resolve, reject);
                             }
                             catch (error) {
                                 reject(error);
@@ -149,7 +150,7 @@ var MyPromise = /** @class */ (function () {
                     try {
                         var x = onFulfilled(_this.value);
                         //对返回的x做判断，判断x 是普通值还是promise
-                        resolvePromise(newPromise, x, resolve, reject);
+                        resolvePromise(promise2, x, resolve, reject);
                     }
                     catch (error) {
                         reject(error);
@@ -161,7 +162,7 @@ var MyPromise = /** @class */ (function () {
                     try {
                         var x = onRejected(_this.reason);
                         //对返回的x做判断，判断x 是普通值还是promise
-                        resolvePromise(newPromise, x, resolve, reject);
+                        resolvePromise(promise2, x, resolve, reject);
                     }
                     catch (error) {
                         reject(error);
@@ -169,10 +170,59 @@ var MyPromise = /** @class */ (function () {
                 }, 0);
             }
         });
-        return newPromise;
+        return promise2;
+    };
+    /**
+     * Promise的catch方法就是then方法没有传递成功的回调函数
+     * @param errorFn
+     */
+    MyPromise.prototype.catch = function (errorFn) {
+        console.log('catche');
+        return this.then(null, errorFn);
+    };
+    /**
+     * all方法返回的也是一个promise
+     * @param valuesList
+     */
+    MyPromise.all = function (valuesList) {
+        var length = valuesList.length; // 传过来的数组的长度
+        var times = 0;
+        var results = [];
+        return new MyPromise(function (resolve, reject) {
+            //收集值
+            function collectValue(i, val) {
+                times++;
+                results[i] = val;
+                if (times == length) {
+                    resolve(results);
+                }
+            }
+            valuesList.forEach(function (item, idx) {
+                //判断传递过来的每一项是否是promise
+                if (item.then && typeof item.then === 'function') {
+                    console.log('item=', item);
+                    item.then(function (data) {
+                        collectValue(idx, data);
+                    }, function (err) {
+                        reject(err);
+                    });
+                }
+                else { //如果是一个普通值
+                    collectValue(idx, item);
+                }
+            });
+        });
     };
     return MyPromise;
 }());
+MyPromise.deferred = function () {
+    var dfd = {};
+    dfd.promise = new MyPromise(function (resolve, reject) {
+        dfd.resolve = resolve;
+        dfd.reject = reject;
+    });
+    return dfd;
+};
 //exports = module.exports = MyPromise
 
 /**
@@ -186,45 +236,32 @@ var MyPromise = /** @class */ (function () {
  * 3.new Promise 后都会立即执行
  * 4.then方法里面有两个回调函数作为参数，一个成功的回调，一个失败的回调
  */
-var promise2 = new MyPromise(function (reslove, reject) {
-    setTimeout(function () {
-        //reslove('99999999999');
-        reject('fail');
-    }, 2000);
-    //reslove('ok');
-    //reject('fail');
-    //throw new Error('报错了')
-}).then(function (data) {
-    console.log('成功回调1111=', data);
-    //throw new Error('第一个错误回调中throw Error')
-    //return 1000;
-    // return new MyPromise((reslove, reject) => {
-    //     reject('goto next reject')
-    //     //reslove('111')
-    // });
-    return new MyPromise(function (reslove, reject) {
-        reslove(new MyPromise(function (reslove, reject) {
-            reslove("88888888888");
-        }));
-    });
+var fs = require('fs');
+var path = require('path');
+function promisify(fn) {
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return new MyPromise(function (resolve, reject) {
+            fn.apply(void 0, __spreadArrays(args, [function (err, data) {
+                    if (err)
+                        reject(err);
+                    resolve(data);
+                }]));
+        });
+    };
+}
+var readFile = promisify(fs.readFile);
+var promise11 = readFile(path.posix.resolve(__dirname, 'name.txt'), "utf8");
+var promise22 = readFile(path.posix.resolve(__dirname, 'age.txt'), "utf8");
+// readFile(path.posix.resolve(__dirname, 'name.txt'), "utf8").then((data) => {
+//     console.log('data=1111111 ', data);
+// });
+MyPromise.all([promise11, promise22, 9000]).then(function (data) {
+    console.log(data);
 }, function (error) {
-    // throw new Error('第一个错误回调中throw Error')
-    console.log('失败回调1111=', error);
-    //return '99999'
-    return new MyPromise(function (reslove, reject) {
-        reject('goto next then errorcallback');
-        //reslove('111')
-    });
-});
-promise2.then(function (data) {
-    console.log('成功回调2222=', data);
-}, function (error) {
-    console.log('失败回调2222=', error);
-});
-var promise3 = new MyPromise(function (resolve, reject) {
-    resolve(1);
-});
-promise3.then().then().then().then(function (data) {
-    console.log('then的穿透实现 = ', data);
+    console.log('error =', error);
 });
 //# sourceMappingURL=bundle.js.map

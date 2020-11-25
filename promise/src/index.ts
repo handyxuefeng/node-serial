@@ -36,7 +36,7 @@ promise.then().then().then().then(data => {
 */
 
 
-
+/*
 import MyPromise from './promise/index';
 let promise2 = new MyPromise((reslove, reject) => {
     setTimeout(() => {
@@ -84,6 +84,45 @@ let promise3 = new MyPromise((resolve, reject) => {
 promise3.then().then().then().then(data => {
     console.log('then的穿透实现 = ', data);
 })
+*/
+import MyPromise from './promise/index';
+const fs = require('fs');
+const path = require('path');
+function read(url) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path.posix.resolve(__dirname, url), 'utf8', (err, data) => {
+            if (err) reject(err);
+            resolve(data);
+        });
+    });
+};
+
+
+
+function promisify(fn) {
+    return function (...args) {
+        return new MyPromise((resolve, reject) => {
+            fn(...args, (err, data) => {
+                if (err) reject(err);
+                resolve(data);
+            })
+        });
+    }
+}
+let readFile = promisify(fs.readFile);
+let promise11 = readFile(path.posix.resolve(__dirname, 'name.txt'), "utf8");
+let promise22 = readFile(path.posix.resolve(__dirname, 'age.txt'), "utf8")
+// readFile(path.posix.resolve(__dirname, 'name.txt'), "utf8").then((data) => {
+//     console.log('data=1111111 ', data);
+// });
+
+MyPromise.all([promise11, promise22, 9000]).then((data) => {
+    console.log(data);
+}, (error) => {
+    console.log('error =', error);
+});
+
+
 
 
 
