@@ -89,7 +89,7 @@ import MyPromise from './promise/index';
 const fs = require('fs');
 const path = require('path');
 function read(url) {
-    return new Promise((resolve, reject) => {
+    return new MyPromise((resolve, reject) => {
         fs.readFile(path.posix.resolve(__dirname, url), 'utf8', (err, data) => {
             if (err) reject(err);
             resolve(data);
@@ -109,18 +109,74 @@ function promisify(fn) {
         });
     }
 }
-let readFile = promisify(fs.readFile);
-let promise11 = readFile(path.posix.resolve(__dirname, 'name.txt'), "utf8");
-let promise22 = readFile(path.posix.resolve(__dirname, 'age.txt'), "utf8")
+// let readFile = promisify(fs.readFile);
+// let promise11 = readFile(path.posix.resolve(__dirname, 'name.txt'), "utf8");
+// let promise22 = readFile(path.posix.resolve(__dirname, 'age.txt'), "utf8")
 // readFile(path.posix.resolve(__dirname, 'name.txt'), "utf8").then((data) => {
 //     console.log('data=1111111 ', data);
 // });
 
-MyPromise.all([promise11, promise22, 9000]).then((data) => {
-    console.log(data);
-}, (error) => {
-    console.log('error =', error);
+// MyPromise.all([promise11, promise22, 9000]).then((data) => {
+//     console.log(data);
+// }, (error) => {
+//     console.log('error =', error);
+// });
+
+
+const mypromise = new MyPromise((resolve, reject) => {
+    resolve(new MyPromise((_resolve, _reject) => {
+        setTimeout(() => {
+            _resolve(1999);
+        }, 1000);
+    }));
 });
+
+mypromise.then((data) => {
+    console.log('data121212= ', data);
+});
+
+MyPromise.resolve(99999).then((data) => {
+    console.log('11=', data);
+})
+
+
+MyPromise.resolve(1000).finally((data) => {
+    return 1888;
+}).then((data) => {
+    console.log('1', data);
+}, err => {
+    console.log('2', err);
+});
+
+let p1 = new MyPromise((reslove, reject) => {
+    setTimeout(() => {
+        reslove('success');
+    }, 3000);
+});
+let p2 = new MyPromise((reslove, reject) => {
+    setTimeout(() => {
+        reject('error');
+    }, 1000);
+});
+
+MyPromise.race([p1, p2]).then(data => {
+    console.log('race = ', data);
+}, err => {
+    console.log('race-error=', err);
+});
+
+let p3 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('ok')
+    }, 3000);
+});
+
+
+
+
+
+
+
 
 
 

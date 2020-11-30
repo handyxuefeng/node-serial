@@ -70,10 +70,13 @@ class MyPromise {
         this.onFulFilledList = [];
         this.onRejectedList = [];
         let resolved = (data?: unknown) => {
+            if (data instanceof MyPromise) {
+                return data.then(resolved, reject);
+            }
             if (this.status === STATUS.peding) {
                 this.status = STATUS.fulfilled;  //执行reslove方法时，要修改当前Promise的状态为成功
                 this.value = data;
-                this.onFulFilledList.forEach((fulfilledCallback: Function) => fulfilledCallback())
+                this.onFulFilledList.forEach((fulfilledCallback: Function) => fulfilledCallback());
             }
 
         }
@@ -167,11 +170,27 @@ class MyPromise {
         return promise2;
     }
     /**
+     *  MyPromise.resolve(1000).finally((data) => {
+            return 1888;
+        }).then((data) => {
+            console.log('1', data);
+        }, err => {
+            console.log('2', err);
+        })
+     * @param callback 
+     */
+    finally = (callback: Function) => {
+        return this.then(() => {
+            return MyPromise.resolve(callback()).then((data) => data);
+        }, (error) => {
+            return MyPromise.resolve(callback()).then(err => { throw err });
+        });
+    }
+    /**
      * Promise的catch方法就是then方法没有传递成功的回调函数
      * @param errorFn 
      */
     catch(errorFn: Function) {
-        console.log('catche');
         return this.then(null, errorFn);
     }
     /**
@@ -209,7 +228,29 @@ class MyPromise {
 
         });
     }
+
+    static resolve(data?: unknown) {
+        return new MyPromise((reslove) => {
+            reslove(data);
+        });
+    }
+    /**
+     * 那个promise执行完，状态就以哪个为准
+     * @param promiseArray 
+     */
+    static race(promiseArray: Array<MyPromise>) {
+        console.log('promiseArray = ', promiseArray);
+        return new MyPromise((resolve, reject) => {
+            promiseArray.forEach(promise => {
+                return promise.then((data) => resolve(data), err => reject(err));
+            });
+        });
+    }
+
+
 }
+
+
 
 MyPromise.deferred = function () {
     let dfd = {} as any;
