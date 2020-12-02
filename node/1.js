@@ -16,7 +16,7 @@ Module._extensions = {
         })`;
         let iifeFunction = vm.runInThisContext(iifeFunctionString);
         //console.log('iifeFunction =', iifeFunction.toString());
-        let exports = moduleInstance.exports;
+        let exports = moduleInstance.exports;  // {}
         let __dirname = path.dirname(moduleInstance.id);
         let __filename = moduleInstance.id;
 
@@ -65,6 +65,7 @@ function myRequire(id) {
 }
 
 let util = myRequire('./util');
+console.log(xxx);
 
 console.log('util = ', util);
 
