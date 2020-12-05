@@ -6,6 +6,12 @@ class EventEmitter {
     }
     on(eventName, fn) {
         if (!this.eventsList) this.eventsList = {};
+
+        //如果订阅的事件名不是newListener，就触发newListener事件
+        if (eventName !== 'newListener') {
+            this.emit('newListener', eventName);
+        }
+
         if (!this.eventsList[eventName]) {
             this.eventsList[eventName] = [];
         }
