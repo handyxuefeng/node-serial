@@ -238,3 +238,15 @@ console.log('util = ', util);
 
 
 ```
+
+## npm 的使用
+
+- nrm 的使用
+
+## npm 依赖
+
+- 开发依赖，安装时，使用 --save-dev 或者 -D 表示只是在开发环境依赖的包 devDependencies
+- 生产依赖，安装时，使用 --save 或者 -s， 表示的是项目上线时需要一起上线的 Dependencies
+- 同版本依赖 peerDependencies
+- 捆绑依赖(npm pack) 表示把项目进行打包时候，是否需要把 node_modules 中的那些一些包一起打包上线， bundleDependencies
+- npm run 命令会把当前 node_modules 下的 bin 目录添加到 path 中

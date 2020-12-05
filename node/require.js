@@ -49,7 +49,7 @@ Module._load = function (id) {
     let filePath = Module._resolveFileName(id); //filePath =  /Users/hanxf.han/project/node-serial/node/util.js 
     console.log('filePath= ', filePath);
     if (Module._cache[filePath]) {
-        console.log('Module._cache[filePath] = ', Module._cache[filePath]);
+        //console.log('Module._cache[filePath] = ', Module._cache[filePath]);
         return Module._cache[filePath].exports;
     }
 
@@ -77,6 +77,8 @@ console.log('util = ', util);
 
 let user = myRequire('./name');
 console.log('user = ', user);
+
+module.exports = myRequire;
 
 
 

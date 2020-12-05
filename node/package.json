@@ -3,9 +3,19 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "vv": "./bin/www.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "dependencies": {
+    "jquery": "^3.5.1",
+    "mime": "^2.4.6"
+  },
+  "devDependencies": {},
+  "peerDependencies": {},
+  "bundleDependencies": {},
   "keywords": [],
   "author": "",
   "license": "ISC"

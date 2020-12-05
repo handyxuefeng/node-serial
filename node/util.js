@@ -8,5 +8,5 @@
 exports.a = 1;
 
 
-module.exports = 100;
+module.exports.c = 10;
 exports.b = 2;
