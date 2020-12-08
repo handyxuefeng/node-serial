@@ -35,6 +35,7 @@ console.log(Buffer.from('上').toString('base64'));
 const fs = require('fs');
 const path = require('path');
 const iconvLite = require('iconv-lite');
+const { off } = require('process');
 const r = fs.readFileSync(path.resolve(__dirname, 'gbk.txt'));
 
 
@@ -43,6 +44,36 @@ const r = fs.readFileSync(path.resolve(__dirname, 'gbk.txt'));
 const content = iconvLite.decode(r, 'gbk'); //调用这个方法把gbk进行转化
 
 console.log('gbk to utf8', content);
+
+
+//--------Buffer的concat方法
+
+let buf1 = Buffer.from('中国');
+let buf2 = Buffer.from('上海')
+
+let buf3 = Buffer.concat([buf1, buf2], 30);
+console.log(buf3);
+
+
+let bufStr = Buffer.from('中国我爱你爱1');
+Buffer.prototype.split = function (sep) {
+    let current = 0;
+    let offset = 0;
+    let arr = [];
+    let speLength = Buffer.from(sep).length;
+    while ((current = this.indexOf(sep, offset)) != -1) {
+        console.log('current = ', current);
+        arr.push(this.slice(offset, current));
+        offset = current + speLength;
+    }
+    arr.push(this.slice(offset));
+
+    return arr;
+}
+
+let sep = '爱';
+let newArr = bufStr.split(sep);
+console.log('newArr = ', newArr.toString());
 
 
 
