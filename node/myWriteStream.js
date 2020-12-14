@@ -65,6 +65,7 @@ class WriteStream extends EventEmitter {
 
         this.len += chunk.length;
 
+
         let result = this.len < this.highWaterMark;
         this.needDrain = !result;
         const clearBuffer = () => {

@@ -16,3 +16,6 @@
 - readFileSync,writeFileSync 同步读取，写入文件
 - readFile,wrieteFile 异步读取，写入文件
 - 利用文件流 createReadStream,createWriteStream 的模式，对文件进行边读边写
+- pipe 通道
+
+## 链表结构
