@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="btnLogin">登录</button>
+    <div id='loginInfo'></div>
+</body>
+
+</html>
+<script>
+    btnLogin.addEventListener("click", async () => {
+
+        fetch('/login', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'username': 'admin',
+                'password': 'admin'
+            })
+        }).then(response => response.json()).then(data => {
+            console.log('data =', data);
+            loginInfo.innerHTML = JSON.stringify(data);
+        })
+
+    });
+
+</script>
