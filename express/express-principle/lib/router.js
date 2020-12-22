@@ -24,10 +24,8 @@ Router.prototype.matchHandler = function (req, res, matchNonePath) {
         if (path === pathname && method === requestMethod) {
             return hanlder(req, res);
         }
-        else {
-            console.log('object');
-        }
     }
+    //没有匹配到路由时，执行传递过来的兜底输出函数
     matchNonePath(req, res);
 
 }
