@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="btnGet">1.GET请求</button>
+    <button id="btnPost">2.POST请求</button>
+
+    <button id="btnDelete">3.DELETE请求</button>
+
+    <button id="btnPut">4.PUT请求</button>
+
+    <div id='requestContainer'></div>
+
+</body>
+
+</html>
+<script>
+    const handler = (method) => fetch('/login', { method: method });
+
+    btnGet.addEventListener("click", () => {
+        let res = handler('get');
+        res.then(response => response.json()).then(data => {
+            requestContainer.innerHTML = JSON.stringify(data);
+        });
+    });
+
+    btnPost.addEventListener("click", () => {
+        let res = handler('post');
+        res.then(response => response.json()).then(data => {
+            requestContainer.innerHTML = JSON.stringify(data);
+        });
+    });
+
+    btnDelete.addEventListener("click", () => {
+        let res = handler('delete');
+        res.then(response => response.json()).then(data => {
+            requestContainer.innerHTML = JSON.stringify(data);
+        });
+    });
+
+    btnPut.addEventListener("click", () => {
+        let res = handler('put');
+        res.then(response => response.json()).then(data => {
+            requestContainer.innerHTML = JSON.stringify(data);
+        });
+    });
+
+
+</script>
