@@ -1,35 +1,47 @@
 const Layer = require("./layer");
+const methods = require('methods'); //引入express中的methods包
 function Route() {
     this.stack = [];
+    this.methods = {};
 }
 
 /**
  * 
  * @param {*} handlers = [ [Function], [Function], [Function] ]
  */
-Route.prototype.get = function (handlers) {
-    handlers.forEach(hander => {
-        let innerLayer = new Layer('*', hander);
-        innerLayer.method = 'get';
-        this.stack.push(innerLayer);
-    });
-}
+methods.forEach(method => {
+    Route.prototype[method] = function (handlers) {
+        handlers.forEach(hander => {
+            let innerLayer = new Layer('*', hander);
+            innerLayer.method = method;
+            this.methods[method] = true;
+            this.stack.push(innerLayer);
+        });
+    }
 
-Route.prototype.dispatch = function (req, res, out) {
+})
+
+/**
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} out = 外层next
+ */
+Route.prototype.dispatch = function (req, res, outNext) {
 
     let requestMethod = req.method.toLowerCase();
     let idx = 0;
-    const next = () => {
-        if (idx > this.stack.length) return out(req, res);
+    const innerNext = () => {
+        if (idx >= this.stack.length) return outNext(req, res); //内层匹配到的handler执行完之后，跳出
         let innerLayer = this.stack[idx++];
         if (innerLayer && requestMethod === innerLayer.method) {
-            innerLayer.handler(req, res, next);
+            innerLayer.handler_Request(req, res, innerNext);
         }
         else {
-            next();
+            innerNext();
         }
     }
-    next();
+    innerNext();
 }
 
 

@@ -1,7 +1,8 @@
 const http = require('http');
 const url = require('url');
 const Router = require('./router');
-const mime = require('mime');
+const methods = require('methods'); //引入express中的methods包
+
 
 //初始化时，默认一个路由系统
 function Application() {
@@ -9,9 +10,14 @@ function Application() {
 }
 
 //get方法的
-Application.prototype.get = function (path, ...handlers) {
-    this._router.get(path, handlers);
-}
+
+methods.forEach(method => {
+    Application.prototype[method] = function (path, ...handlers) {
+        this._router[method](path, handlers);
+    }
+});
+
+
 
 Application.prototype.listen = function (port, handler) {
     //表示路由没有匹配到，则执行兜底函数

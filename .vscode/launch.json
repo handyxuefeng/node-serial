@@ -11,7 +11,7 @@
             "skipFiles": [
                 //"<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/cookie-session/jwt.js",
+            "program": "${workspaceFolder}/express/1.server.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
