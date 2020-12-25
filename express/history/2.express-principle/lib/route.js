@@ -31,11 +31,7 @@ Route.prototype.dispatch = function (req, res, outNext) {
 
     let requestMethod = req.method.toLowerCase();
     let idx = 0;
-    const innerNext = (err) => {
-        //如果有err，说明出错了，要去执行在外层定义的错误中间件函数执行
-        if (err) {
-            return outNext(err);
-        }
+    const innerNext = () => {
         if (idx >= this.stack.length) return outNext(req, res); //内层匹配到的handler执行完之后，跳出
         let innerLayer = this.stack[idx++];
         if (innerLayer && requestMethod === innerLayer.method) {

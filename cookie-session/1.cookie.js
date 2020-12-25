@@ -1,9 +1,5 @@
 const http = require('http');
 const port = 3000;
-
-
-
-
 // 设置cookie  参数
 // key/value/domain/path/maxAge/expires/httpOnly
 // domain 限制域名 默认是当前的域名

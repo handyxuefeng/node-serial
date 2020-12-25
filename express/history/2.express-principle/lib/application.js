@@ -4,7 +4,6 @@ const Router = require('./router');
 const methods = require('methods'); //引入express中的methods包
 
 
-
 //初始化时，默认一个路由系统
 function Application() {
     this._router = new Router();
@@ -13,23 +12,12 @@ function Application() {
 //get方法的
 
 methods.forEach(method => {
-
     Application.prototype[method] = function (path, ...handlers) {
-        console.log('method = ', method);
         this._router[method](path, handlers);
     }
 });
 
-/**
- * 增加中间件功能
- * @param {*} path  ="/"
- * @param  {...any} handlers  = [Function,Funciton]
- * app.use("/",function(req,res,next){})
- * app.use(function(req,res,next){})
- */
-Application.prototype.use = function (path, ...handlers) {
-    this._router.use(path, ...handlers);
-}
+
 
 Application.prototype.listen = function (port, handler) {
     //表示路由没有匹配到，则执行兜底函数
