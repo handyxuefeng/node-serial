@@ -24,7 +24,7 @@ Router.prototype.use = function (path, ...handlers) {
         layer.method = 'use'; //中间件方法都为use
         this.routes.push(layer);
     });
-    //console.log("中间件的路由也加入到路由中=", this.routes);
+    console.log("中间件的路由也加入到路由中=", this.routes);
 
 }
 
@@ -37,7 +37,7 @@ Router.prototype.passHandlersToRoute = function (path, method) {
     outLayer.route = route;
     outLayer.method = method;
     this.routes.push(outLayer); //
-    //console.log("请页面请求路由=", this.routes);
+    console.log("请页面请求路由=", this.routes);
 
     return route;
 }
@@ -91,7 +91,6 @@ Router.prototype.matchHandler = function (req, res, matchNonePath) {
         else {
             //匹配到请求url的话，这里匹配是模糊匹配的，如 /user 可以匹配到/ 或者 /user
             if (outLayer.matchRequest(pathname)) {
-                req.params = outLayer.params; //带参数路由的
                 //outLayer.route = null,表示的是中间件函数，没有内层的layer，则直接执行
                 if (outLayer.route == null) {
                     // 参数个数==4，表示是的Express的统一错误处理中间件
@@ -99,7 +98,6 @@ Router.prototype.matchHandler = function (req, res, matchNonePath) {
                         next(err);
                     }
                     else {
-
                         outLayer.handler_Request(req, res, next); //route.dispatch
                     }
 

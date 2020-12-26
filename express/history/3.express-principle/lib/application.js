@@ -15,7 +15,7 @@ function Application() {
 methods.forEach(method => {
 
     Application.prototype[method] = function (path, ...handlers) {
-        //console.log('method = ', method);
+        console.log('method = ', method);
         this._router[method](path, handlers);
     }
 });
