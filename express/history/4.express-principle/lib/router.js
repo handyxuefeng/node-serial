@@ -3,6 +3,9 @@ const Layer = require('./layer');
 const Route = require('./route');
 const methods = require('methods'); //引入express中的methods包
 
+function Router() {
+    this.routes = [];
+}
 
 /**
  * 增加中间件功能
@@ -11,12 +14,7 @@ const methods = require('methods'); //引入express中的methods包
  * app.use("/",function(req,res,next){})
  * app.use(function(req,res,next){})
  */
-
-let RouterProto = {};
-
-
-
-RouterProto.use = function (path, ...handlers) {
+Router.prototype.use = function (path, ...handlers) {
     if (!handlers[0]) {
         handlers.push(path);
         path = '/';
@@ -30,7 +28,7 @@ RouterProto.use = function (path, ...handlers) {
 
 }
 
-RouterProto.passHandlersToRoute = function (path, method) {
+Router.prototype.passHandlersToRoute = function (path, method) {
     //1.创建一个route
     let route = new Route();
 
@@ -50,31 +48,23 @@ RouterProto.passHandlersToRoute = function (path, method) {
  * @param {*} hanlders  hanlders = [ [Function], [Function], [Function] ]
  */
 methods.forEach(method => {
-    RouterProto[method] = function (path, hanlders) {
-        if (!Array.isArray(hanlders)) {
-            hanlders = Array.from(arguments).slice(1);
-        }
+    Router.prototype[method] = function (path, hanlders) {
         let route = this.passHandlersToRoute(path, method); //Router.route()
         route[method](hanlders); //
     }
 });
 
 
+
+
 //请求进入后，开始匹配路由
-RouterProto.matchHandler = function (req, res, matchNonePath) {
+Router.prototype.matchHandler = function (req, res, matchNonePath) {
     let { pathname } = url.parse(req.url);
     let requestMethod = req.method.toLowerCase();
     let idx = 0;
-    let removed = '';
     const next = (err) => {
         if (idx >= this.routes.length) return matchNonePath(req, res);
         let outLayer = this.routes[idx++];
-
-        if (removed.length) {
-            req.url = removed + req.url;
-            removed = '';
-        }
-
         //如果出错了，则要开始找统一错误处理的中间件函数
         if (err) {
             //中间件的特点就是outLayer.route =null
@@ -109,12 +99,7 @@ RouterProto.matchHandler = function (req, res, matchNonePath) {
                         next(err);
                     }
                     else {
-                        // 进入到中间件的时候 需要将中间件的路径移除掉
-                        //add
-                        if (outLayer.path !== '/') {
-                            removed = outLayer.path; // 要删除的部分  中间件要是/ 就不要删除了
-                            req.url = req.url.slice(outLayer.path.length);
-                        }
+
                         outLayer.handler_Request(req, res, next); //route.dispatch
                     }
 
@@ -137,21 +122,5 @@ RouterProto.matchHandler = function (req, res, matchNonePath) {
     }
     next();
 }
-
-
-function Router() {
-    let router = function (req, res, next) {
-        router.matchHandler(req, res, next);
-    }
-    router.routes = [];
-    router.__proto__ = RouterProto;
-    return router;
-}
-
-
-
-
-
-
 
 exports = module.exports = Router;

@@ -51,8 +51,8 @@ RouterProto.passHandlersToRoute = function (path, method) {
  */
 methods.forEach(method => {
     RouterProto[method] = function (path, hanlders) {
-        if (!Array.isArray(hanlders)) {
-            hanlders = Array.from(arguments).slice(1);
+        if (!Array.isArray(handlers)) {
+            handlers = Array.from(arguments).slice(1);
         }
         let route = this.passHandlersToRoute(path, method); //Router.route()
         route[method](hanlders); //
